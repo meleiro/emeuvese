@@ -1,11 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 30px;
+            max-width: 700px;
+        }
+
+        li {
+            margin: 10px 0;
+        }
+
+        .done {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        form {
+            display: inline;
+        }
+
+        input[type="text"] {
+            padding: 6px;
+        }
+
+        button {
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+    </style>
 </head>
-<body>    
+
+<body>
     <h1>Lista de tareas</h1>
 
     <form action="/tasks" method="POST">
@@ -13,34 +51,38 @@
         <button type="submit">Añadir</button>
     </form>
 
-    <% if (tasks.length === 0) { %> 
+    <% if (tasks.length===0) { %>
         <p>No hay ninguna tarea</p>
-    <%  }  %>
+        <% } %>
 
-    <ul>
-        <% tasks.forEach(t => { %>
+            <ul>
+                <% tasks.forEach(t=> { %>
 
-            <li>
-               <div class="row">
-                    <span class="<%= t.done ? 'done' : ''  %>">
-                        #<%= t.id %> - <%= t.title %> (<%= t.done ? "hecha" : "pendiente"%>)
-                    </span>
-                    
-                    <form action="/tasks/<%= t.id %>/toggle" method="POST">
-                        <button type="submit"><%= t.done ? "Marcar pendiente" : "Marcar hecha" %></button>
-                    </form>
+                    <li>
+                        <div class="row">
+                            <span class="<%= t.done ? 'done' : ''  %>">
+                                #<%= t.id %> - <%= t.title %> (<%= t.done ? "hecha" : "pendiente" %>)
+                            </span>
 
-                    <form action="/tasks/<%= t.id %>/edit" method="POST">
-                        <input type="text" name="title" value="<%= t.title %>" />
-                        <button type="submit">Guardar</button>
-                    </form>
+                            <form action="/tasks/<%= t.id %>/toggle" method="POST">
+                                <button type="submit">
+                                    <%= t.done ? "Marcar pendiente" : "Marcar hecha" %>
+                                </button>
+                            </form>
 
-                    <form action="/tasks/<%= t.id %>/delete" method="POST" onsubmit="return confirm('¿Borrar tarea?')">
-                        <button type="submit">Borrar</button>
-                    </form>
-               </div>
-            </li>
-        <% })   %>
-    </ul>
+                            <form action="/tasks/<%= t.id %>/edit" method="POST">
+                                <input type="text" name="title" value="<%= t.title %>" />
+                                <button type="submit">Guardar</button>
+                            </form>
+
+                            <form action="/tasks/<%= t.id %>/delete" method="POST"
+                                onsubmit="return confirm('¿Borrar tarea?')">
+                                <button type="submit">Borrar</button>
+                            </form>
+                        </div>
+                    </li>
+                    <% }) %>
+            </ul>
 </body>
+
 </html>

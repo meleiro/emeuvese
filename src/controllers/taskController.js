@@ -30,7 +30,7 @@ exports.toggleDoneFromForm = async (req, res) => {
 
   await task.save();
 
-  res.redirect("/task");
+  res.redirect("/tasks");
 
 
 };
@@ -49,7 +49,7 @@ exports.updateTitleFromForm = async (req,res) => {
 
    );
 
-   res.redirect("/task");
+   res.redirect("/tasks");
 
 }
 
@@ -61,6 +61,6 @@ exports.deleteFromForm = async (req, res) => {
     where: { id }
   });
 
-  res.redirect("/task");
+  res.redirect("/tasks");
 
 }
