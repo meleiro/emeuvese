@@ -1,7 +1,7 @@
 // Importamos el modelo Task desde la carpeta models.
 // - Este modelo representa la tabla "Tasks" en la base de datos.
 // - A través de él usamos Sequelize para hacer operaciones CRUD.
-const Task = require("../models/task");
+const Task = require("../models/Task");
 
 // ===============================
 // RENDER: leer (READ)
