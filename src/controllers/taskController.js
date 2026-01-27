@@ -1,30 +1,100 @@
-// Importamos el modelo Task desde la carpeta models.
-// - Este modelo representa la tabla "Tasks" en la base de datos.
-// - A través de él usamos Sequelize para hacer operaciones CRUD.
+// ===============================
+// IMPORTS / DEPENDENCIAS
+// ===============================
+
+// Importamos Sequelize (la librería ORM) para poder usar utilidades avanzadas.
+// En este archivo lo necesitamos por un motivo concreto:
+// - Sequelize.literal(...) nos permite escribir un trozo de SQL "a mano"
+//   dentro del ORDER BY (por ejemplo, para ordenar prioridad con CASE).
+const { Sequelize } = require("sequelize");
+
+// Importamos el modelo Task.
+// - El modelo representa la tabla de la base de datos.
+// - A través de Task hacemos operaciones CRUD: findAll, create, update, destroy, etc.
 const Task = require("../models/Task");
 
 // ===============================
 // RENDER: leer (READ)
 // ===============================
-// Este controlador se encarga de:
-// - Leer todas las tareas de la base de datos
-// - Pasarlas a la vista EJS "tasks"
-// - Renderizar la página HTML con esas tareas
+// Este controlador:
+// - Lee las tareas desde la base de datos
+// - Aplica ordenación según la query string (sortBy, sortType)
+// - Renderiza la vista EJS "tasks" pasando las tareas y los parámetros para mantener selects
 exports.renderTasksPage = async (req, res) => {
 
-  // Task.findAll() obtiene todas las filas de la tabla Task.
-  // order: [["id", "DESC"]]
-  // - Ordena las tareas por id de forma descendente
-  // - Las tareas más nuevas aparecen primero
-  const tasks = await Task.findAll({
-    order: [["id", "DESC"]]
-  });
+  // Leemos parámetros de la URL (query string):
+  // Ejemplo: /tasks?sortBy=priority&sortType=asc
+  //
+  // req.query.sortBy:
+  // - "old" (ordenar por fecha)
+  // - "priority" (ordenar por prioridad)
+  //
+  // Si el usuario no manda nada, usamos valores por defecto:
+  const sortBy = req.query.sortBy || "old";     // old | priority
+  const sortType = req.query.sortType || "asc"; // asc | des
 
-  // res.render():
-  // - Renderiza la vista "tasks.ejs"
-  // - Pasa el array tasks a la vista como variable
-  // - En EJS se podrá usar <%= tasks %> o recorrerlas con forEach/map
-  res.render("tasks", { tasks });
+  // 1) Convertimos el valor del formulario (asc / des) a lo que entiende Sequelize/SQL:
+  // - "ASC"  -> orden ascendente
+  // - "DESC" -> orden descendente
+  //
+  // OJO: tu select manda "des" (no "desc"), por eso hacemos esta conversión.
+  const dir = sortType === "des" ? "DESC" : "ASC";
+
+  // 2) Construimos el ORDER BY en la forma que espera Sequelize:
+  // order es un array de criterios, por ejemplo:
+  //   [["createdAt", "DESC"]]
+  // o:
+  //   [[Sequelize.literal("..."), "ASC"]]
+  let order;
+
+  // Si el usuario quiere ordenar por prioridad:
+  if (sortBy === "priority") {
+
+    // Ordenar prioridades "baja/media/alta" directamente alfabéticamente NO vale,
+    // porque alfabéticamente sería: alta, baja, media (y eso no es "natural").
+    //
+    // Queremos un orden "lógico":
+    // - baja  -> 1
+    // - media -> 2
+    // - alta  -> 3
+    //
+    // Para conseguirlo usamos un CASE en SQL.
+    // Sequelize.literal(...) nos deja escribir ese fragmento SQL.
+    //
+    // El ORDER BY final quedará como:
+    // ORDER BY (CASE priority WHEN 'alta' THEN 3 WHEN 'media' THEN 2 WHEN 'baja' THEN 1 ELSE 0 END) ASC/DESC
+    order = [[
+      Sequelize.literal(`
+        CASE priority
+          WHEN 'alta' THEN 3
+          WHEN 'media' THEN 2
+          WHEN 'baja' THEN 1
+          ELSE 0
+        END
+      `),
+      dir
+    ]];
+
+  } else {
+    // Si sortBy NO es "priority", entonces usamos fecha de creación.
+    // "createdAt" es una columna que Sequelize crea automáticamente si timestamps = true.
+    //
+    // Con dir:
+    // - ASC  -> más antiguos primero
+    // - DESC -> más nuevos primero
+    order = [["createdAt", dir]];
+  }
+
+  // Consultamos la base de datos:
+  // Task.findAll({ order })
+  // - Trae todas las tareas
+  // - Aplicando el order construido arriba
+  const tasks = await Task.findAll({ order });
+
+  // Renderizamos la vista "tasks.ejs":
+  // - tasks: lista de tareas para mostrar
+  // - sortBy y sortType: se envían a la vista para mantener seleccionados los <select>
+  res.render("tasks", { tasks, sortBy, sortType });
 };
 
 // ===============================
@@ -32,31 +102,35 @@ exports.renderTasksPage = async (req, res) => {
 // ===============================
 exports.createFromForm = async (req, res) => {
 
-  // req.body contiene los datos enviados desde el formulario HTML (POST)
-  // req.body.title es el valor del input con name="title"
+  // req.body contiene los datos enviados por el formulario (POST).
+  // Para que esto funcione, en app.js debe existir:
+  // app.use(express.urlencoded({ extended: true }));
   //
-  // (req.body.title || ""):
-  // - Evita errores si title viene undefined
-  //
-  // .trim():
-  // - Elimina espacios al principio y al final
-  // - Evita guardar títulos vacíos o solo con espacios
+  // Leemos el título del formulario:
+  // - si no existe, usamos "" para evitar undefined
+  // - trim() elimina espacios al inicio y final
   const title = (req.body.title || "").trim();
 
-  // Si el título está vacío después del trim:
-  // - No se crea la tarea
-  // - Se redirige de nuevo a /tasks
+  // Leemos priority.
+  // Si el usuario no envía nada (raro, porque el select es required),
+  // ponemos por defecto "media".
+  const priority = req.body.priority || "media";
+
+  // Validación mínima:
+  // - Si title está vacío, no creamos nada
+  // - Redirigimos al listado
   if (!title) return res.redirect("/tasks");
 
-  // Task.create():
-  // - Inserta una nueva fila en la base de datos
-  // - Solo se guarda el campo title
-  // - Otros campos (done, createdAt, etc.) usan valores por defecto
-  await Task.create({ title });
+  // Creamos el registro en la base de datos:
+  // - title y priority se guardan
+  // - done puede quedar por defecto (false)
+  // - createdAt/updatedAt se rellenan automáticamente si timestamps está activo
+  await Task.create({ title, priority });
 
-  // Redirige al listado de tareas
-  // - Fuerza una nueva petición GET /tasks
-  // - Patrón Post/Redirect/Get (buena práctica)
+  // Redirección después de POST:
+  // Patrón Post/Redirect/Get:
+  // - Evita reenvío del formulario si recargas (F5)
+  // - El navegador vuelve a hacer un GET limpio
   res.redirect("/tasks");
 };
 
@@ -65,30 +139,30 @@ exports.createFromForm = async (req, res) => {
 // ===============================
 exports.toggleDoneFromForm = async (req, res) => {
 
-  // req.params contiene los parámetros de la URL
-  // Si la ruta es /tasks/:id/toggle, aquí leemos ese :id
+  // El id viene en la URL, por ejemplo:
+  // POST /tasks/5/toggle
+  // => req.params.id === "5"
   const { id } = req.params;
 
-  // Task.findByPk(id):
-  // - Busca una tarea por su clave primaria (primary key)
-  // - Devuelve el objeto Task o null si no existe
+  // Buscamos la tarea por su clave primaria (id).
+  // Si no existe, findByPk devuelve null.
   const task = await Task.findByPk(id);
 
-  // Si la tarea no existe:
-  // - Redirigimos al listado
-  // - Evitamos errores al intentar modificar algo inexistente
+  // Si no existe la tarea:
+  // OJO: aquí hay un detalle: rediriges a "/task" (singular),
+  // normalmente debería ser "/tasks".
   if (!task) return res.redirect("/task");
 
-  // Invertimos el valor de done
-  // - Si estaba false → pasa a true
-  // - Si estaba true → pasa a false
+  // Toggle: invertimos el booleano
+  // false -> true
+  // true  -> false
   task.done = !task.done;
 
-  // task.save():
-  // - Guarda los cambios del objeto en la base de datos
+  // Guardamos la modificación en la BD:
+  // save() actualiza el registro existente con los cambios.
   await task.save();
 
-  // Volvemos al listado de tareas
+  // Volvemos al listado
   res.redirect("/tasks");
 };
 
@@ -97,19 +171,21 @@ exports.toggleDoneFromForm = async (req, res) => {
 // ===============================
 exports.updateTitleFromForm = async (req, res) => {
 
-  // Obtenemos el id desde la URL
+  // ID del recurso a modificar
   const { id } = req.params;
 
-  // Leemos y limpiamos el nuevo título desde el formulario
+  // Nuevo título desde el formulario
   const title = (req.body.title || "").trim();
 
-  // Si el título está vacío, no actualizamos nada
+  // Validación: no permitimos vacío
   if (!title) return res.redirect("/tasks");
 
-  // Task.update():
-  // - Actualiza uno o varios registros
-  // - Primer objeto: campos a actualizar
-  // - Segundo objeto: condición WHERE
+  // Task.update(...) hace un UPDATE en BD.
+  // - Primer parámetro: campos a cambiar
+  // - Segundo parámetro: condición WHERE
+  //
+  // Esto en SQL sería algo como:
+  // UPDATE Tasks SET title='...' WHERE id=...
   await Task.update(
     { title },
     { where: { id } }
@@ -124,16 +200,15 @@ exports.updateTitleFromForm = async (req, res) => {
 // ===============================
 exports.deleteFromForm = async (req, res) => {
 
-  // Obtenemos el id de la tarea a borrar desde la URL
+  // ID de la tarea a borrar
   const { id } = req.params;
 
-  // Task.destroy():
-  // - Elimina registros de la base de datos
-  // - where: { id } indica qué fila borrar
+  // Task.destroy(...) elimina en BD:
+  // DELETE FROM Tasks WHERE id=...
   await Task.destroy({
     where: { id }
   });
 
-  // Redirigimos al listado tras borrar
+  // Volvemos al listado
   res.redirect("/tasks");
 };

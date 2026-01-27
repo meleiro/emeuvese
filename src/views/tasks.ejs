@@ -1,109 +1,461 @@
+<!--
+  DOCTYPE indica al navegador que este documento usa HTML5.
+  Esto activa el "modo estándar" (evita comportamientos antiguos de compatibilidad).
+-->
 <!DOCTYPE html>
+
+<!--
+  Elemento raíz del documento HTML.
+  lang="en" indica el idioma principal del documento (idealmente sería "es" si todo está en español).
+  Ayuda a accesibilidad, SEO y lectores de pantalla.
+-->
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        body {
-            font-family: Arial;
-            margin: 30px;
-            max-width: 700px;
-        }
+  <!--
+    Define la codificación de caracteres como UTF-8.
+    Evita problemas con tildes, ñ, símbolos, etc.
+  -->
+  <meta charset="UTF-8">
 
-        li {
-            margin: 10px 0;
-        }
+  <!--
+    Hace que la página sea responsive:
+    - width=device-width -> el ancho del viewport se adapta al ancho del dispositivo
+    - initial-scale=1.0 -> nivel de zoom inicial
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        .done {
-            text-decoration: line-through;
-            opacity: 0.6;
-        }
+  <!-- Título de la pestaña del navegador -->
+  <title>Document</title>
 
-        form {
-            display: inline;
-        }
+  
+  <style>
+    /* =====================
+       BODY
+       ===================== */
 
-        input[type="text"] {
-            padding: 6px;
-        }
+    /*
+      Estilos base del documento completo:
+      - font-family: tipografía general
+      - background: color de fondo suave (gris clarito)
+      - margin/padding: se ponen a 0 para evitar márgenes por defecto del navegador
+    */
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
 
-        button {
-            padding: 6px 10px;
-            cursor: pointer;
-        }
+    /* =====================
+       CONTENEDOR CENTRAL
+       ===================== */
 
-        .row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-    </style>
+    /*
+      .container actúa como "caja" central donde metemos todo.
+      - max-width: limita el ancho máximo a 900px (para que no se vea enorme en pantallas grandes)
+      - margin: 40px auto -> arriba/abajo 40px y centrado horizontal automático
+      - padding: espacio interior
+      - background: fondo blanco (contrasta con el gris del body)
+      - border-radius: esquinas redondeadas
+      - box-shadow: sombra suave para efecto "tarjeta"
+    */
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 24px;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    /* =====================
+       TÍTULO
+       ===================== */
+
+    /*
+      h1 centrado y con margen inferior para separar del contenido.
+    */
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    /* =====================
+       FORMULARIOS SUPERIORES
+       ===================== */
+
+    /*
+      Separación vertical entre formularios.
+    */
+    form {
+      margin-bottom: 16px;
+    }
+
+    /*
+      form.row y .order-form usan flexbox:
+      - display: flex -> coloca elementos en fila
+      - gap -> separación entre elementos (más limpio que usar margins)
+      - align-items: center -> alinea verticalmente
+      - flex-wrap: wrap -> si no cabe, baja a la siguiente línea (responsive)
+    */
+    form.row,
+    .order-form {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /*
+      Estilo común para inputs de texto y selects:
+      - padding para que sean cómodos
+      - border-radius para redondear
+      - border para marcar el contorno
+    */
+    input[type="text"],
+    select {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    /* =====================
+       BOTONES
+       ===================== */
+
+    /*
+      Estilo base del botón:
+      - background azul
+      - texto blanco
+      - sin borde (border: none)
+      - padding para tamaño cómodo
+      - border-radius redondeado
+      - cursor pointer para mostrar que es clicable
+    */
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /*
+      Efecto al pasar el ratón.
+      Oscurece el azul.
+    */
+    button:hover {
+      background: #1e40af;
+    }
+
+    /*
+      Variante de botón “peligro” (para borrar, por ejemplo).
+      Se aplica con class="danger"
+    */
+    button.danger {
+      background: #dc2626;
+    }
+
+    /*
+      Hover del botón peligro.
+    */
+    button.danger:hover {
+      background: #991b1b;
+    }
+
+    /* =====================
+       LISTA DE TAREAS
+       ===================== */
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 24px;
+    }
+
+    /* =====================
+       TARJETA DE TAREA
+       ===================== */
+
+    /*
+      Cada tarea se pinta como una “tarjeta” (li.task).
+
+    */
+    li.task {
+      background: #f9fafb;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    /*
+      Estilo para la línea principal de texto de cada tarea.
+      (Solo se aplicará si usas class="task-title" en el HTML)
+    */
+    .task-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    /*
+      Clase para tareas completadas:
+      
+    */
+    .done {
+      text-decoration: line-through;
+      color: #9ca3af;
+    }
+
+    /* =====================
+       BADGES PRIORIDAD
+       ===================== */
+
+    /*
+      .badge sería una etiqueta pequeña para mostrar “baja/media/alta”
+    */
+    .badge {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-left: 8px;
+      text-transform: uppercase;
+    }
+
+    /* Fondos distintos según prioridad */
+    .p-baja {
+      background: #e5e7eb;
+    }
+
+    .p-media {
+      background: #bae6fd;
+    }
+
+    .p-alta {
+      background: #fecaca;
+    }
+
+    /* =====================
+       FORMULARIOS DE CADA TAREA
+       ===================== */
+
+    /*
+      .task-actions agrupa botones/formularios en una fila con flexbox.
+      (Ahora mismo en tu HTML no estás usando .task-actions, pero podrías)
+    */
+    .task-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    /* =====================
+       RESPONSIVE
+       ===================== */
+
+    /*
+      Media query: cuando la pantalla es menor de 600px
+      - los formularios y acciones se ponen en columna
+      - botones a ancho completo
+      Esto mejora el uso en móvil.
+    */
+    @media (max-width: 600px) {
+      form.row,
+      .order-form,
+      .task-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 
 <body>
+
+  <!--
+    Contenedor central que aplica el estilo .container.
+    Aquí dentro metemos todo el contenido de la página.
+  -->
+  <div class="container">
+
+    <!-- Título principal -->
     <h1>Lista de tareas</h1>
 
+    <!--
+      FORMULARIO: Crear tarea
+      action="/tasks" -> al enviar, hace POST a /tasks
+      method="POST" -> envía datos en el body (req.body)
+    -->
     <form action="/tasks" method="POST">
-        <input type="text" name="title" placeholder="Nueva tarea..." required />
-        <select name="priority" required>
-            <option value="baja">Baja</option>
-            <option value="media">Media</option>
-            <option value="alta">Alta</option>
-        </select>
-        <button type="submit">Añadir</button>
+      <!--
+        Campo de texto para el título
+        name="title" -> será req.body.title en Express
+        required -> validación HTML básica (no permite vacío)
+      -->
+      <input type="text" name="title" placeholder="Nueva tarea..." required />
+
+      <!--
+        Desplegable de prioridad
+        name="priority" -> será req.body.priority
+        required -> obliga a seleccionar una opción (aunque por defecto ya hay una)
+      -->
+      <select name="priority" required>
+        <option value="baja">Baja</option>
+        <option value="media">Media</option>
+        <option value="alta">Alta</option>
+      </select>
+
+      <!-- Botón de envío del formulario -->
+      <button type="submit">Añadir</button>
     </form>
 
+    <!--
+      FORMULARIO: Ordenar tareas
+      action="/tasks" -> el mismo endpoint, pero con GET y query params
+      method="GET" -> los datos van a la URL: /tasks?sortBy=...&sortType=...
+      Esto es ideal para filtros/ordenación sin tocar datos.
+    -->
     <form action="/tasks" method="GET">
-        <label>Ordenar:</label>
-        <select name="sortBy" required>
-            <option value="old">Por fecha (más antiguos primero)</option>
-            <option value="priority">Prioridad</option>
-        </select>
-        <label>Tipo:</label>
-        <select name="sortType" required>
-            <option value="asc">Acendente</option>
-            <option value="des">Descendente</option>
-        </select>
-        <button type="submit">Aplicar</button>
+      <label>Ordenar:</label>
+
+      <!--
+        select sortBy:
+        - name="sortBy" -> llega como req.query.sortBy
+        - required -> obliga a enviar algo
+        - La opción selected se decide con EJS:
+          <%=(sortBy || "old")==="old" ? "selected" : "" %>
+          Esto mantiene la selección al recargar la página.
+      -->
+      <select name="sortBy" required>
+        <option value="old" <%=(sortBy || "old" )==="old" ? "selected" : "" %>>
+          Por fecha (más antiguos primero)
+        </option>
+
+        <option value="priority" <%=sortBy==="priority" ? "selected" : "" %>>
+          Prioridad
+        </option>
+      </select>
+
+      <label>Tipo:</label>
+
+      <!--
+        select sortType:
+        - name="sortType" -> llega como req.query.sortType
+        - Valores: asc / des 
+        - Mantiene selección con EJS igual que arriba.
+      -->
+      <select name="sortType" required>
+        <option value="asc" <%=(sortType || "asc" )==="asc" ? "selected" : "" %>>
+          Acendente
+        </option>
+        <option value="des" <%=sortType==="des" ? "selected" : "" %>>
+          Descendente
+        </option>
+      </select>
+
+      <!-- Envía el formulario de ordenación -->
+      <button type="submit">Aplicar</button>
     </form>
 
-
-
+    <!--
+      Bloque EJS: si no hay tareas, mostramos mensaje
+      tasks es el array que viene desde el controlador: res.render("tasks", { tasks, ... })
+    -->
     <% if (tasks.length===0) { %>
-        <p>No hay ninguna tarea</p>
-        <% } %>
+      <p>No hay ninguna tarea</p>
+    <% } %>
 
-            <ul>
-                <% tasks.forEach(t=> { %>
+    <!-- Lista de tareas -->
+    <ul>
 
-                    <li>
-                        <div class="row">
-                            <span class="<%= t.done ? 'done' : ''  %>">
-                                #<%= t.id %> - <%= t.title %> (<%= t.done ? "hecha" : "pendiente" %>)
-                            </span>
+      <!--
+        tasks.forEach(t => { ... })
+        Recorre todas las tareas y genera un <li> por cada una.
+        t es cada tarea (objeto Sequelize).
+      -->
+      <% tasks.forEach(t=> { %>
 
-                            <form action="/tasks/<%= t.id %>/toggle" method="POST">
-                                <button type="submit">
-                                    <%= t.done ? "Marcar pendiente" : "Marcar hecha" %>
-                                </button>
-                            </form>
+        <!--
+          Cada tarea es un <li>.
+        -->
+        <li>
+     
+          <div class="row">
 
-                            <form action="/tasks/<%= t.id %>/edit" method="POST">
-                                <input type="text" name="title" value="<%= t.title %>" />
-                                <button type="submit">Guardar</button>
-                            </form>
+            <!--
+              Span principal con el texto de la tarea.
+              Clase dinámica:
+              - Si t.done es true -> class="done" (tachado)
+              - Si no -> class=""
+            -->
+            <span class="<%= t.done ? 'done' : ''  %>">
+              #<%= t.id %> - <%= t.title %> (<%= t.done ? "hecha" : "pendiente" %>)
+            </span>
 
-                            <form action="/tasks/<%= t.id %>/delete" method="POST"
-                                onsubmit="return confirm('¿Borrar tarea?')">
-                                <button type="submit">Borrar</button>
-                            </form>
-                        </div>
-                    </li>
-                    <% }) %>
-            </ul>
+            <!--
+              Muestra la prioridad.
+              Si por alguna razón no existe, usa "media".
+              (Podrías convertir esto en badge con clases para colorear)
+            -->
+            <span>
+              <%= t.priority || 'media' %>
+            </span>
+
+            <!--
+              FORMULARIO: toggle done
+              POST /tasks/:id/toggle
+              Cambia el estado done en el backend (true/false).
+            -->
+            <form action="/tasks/<%= t.id %>/toggle" method="POST">
+              <button type="submit">
+                <%= t.done ? "Marcar pendiente" : "Marcar hecha" %>
+              </button>
+            </form>
+
+            <!--
+              FORMULARIO: editar tarea
+              POST /tasks/:id/edit
+              Envia:
+              - title (nuevo título)
+              - priority (nueva prioridad)
+            -->
+            <form action="/tasks/<%= t.id %>/edit" method="POST">
+              <input type="text" name="title" value="<%= t.title %>" />
+              <select name="priority" required>
+                <option value="baja" <%=t.priority==="baja" ? "selected" : "" %>>Baja</option>
+                <option value="media" <%=t.priority==="media" ? "selected" : "" %>>Media</option>
+                <option value="alta" <%=t.priority==="alta" ? "selected" : "" %>>Alta</option>
+              </select>
+
+              <button type="submit">Guardar</button>
+            </form>
+
+            <!--
+              FORMULARIO: borrar tarea
+              POST /tasks/:id/delete
+              onsubmit="return confirm(...)" muestra un confirm del navegador:
+              - Si el usuario pulsa OK -> envía
+              - Si pulsa Cancel -> no envía (return false)
+            -->
+            <form action="/tasks/<%= t.id %>/delete" method="POST"
+              onsubmit="return confirm('¿Borrar tarea?')">
+              <button type="submit">Borrar</button>
+            </form>
+
+          </div>
+        </li>
+
+      <% }) %>
+    </ul>
+
+  </div>
 </body>
 
 </html>
